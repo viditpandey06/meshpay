@@ -130,6 +130,24 @@ h2 {
   max-width: 100%;
 }
 
+.contact-dev {
+  align-items: center;
+  background: var(--green);
+  border-radius: 999px;
+  color: white;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.contact-dev:hover {
+  background: #176648;
+}
+
 .command-band {
   align-items: start;
   border-bottom: 1px solid var(--line);
@@ -512,6 +530,12 @@ th {
   }
 
   .status-pill {
+    border-radius: 7px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .contact-dev {
     border-radius: 7px;
     justify-content: center;
     width: 100%;

@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   Database,
   GitBranch,
+  Mail,
   Play,
   Radio,
   RefreshCcw,
@@ -200,6 +201,9 @@ function App() {
           <StatusPill icon={<Database size={15} />} label={health?.store || 'store'} />
           <StatusPill icon={<GitBranch size={15} />} label={health?.queue || 'queue'} />
           <StatusPill icon={<ShieldCheck size={15} />} label={health?.redis ? 'Redis idempotency' : 'memory idempotency'} />
+          <a className="contact-dev" href="https://viditpandey.in" target="_blank" rel="noreferrer" title="Contact developer">
+            <Mail size={15} /> Contact dev
+          </a>
         </div>
       </header>
 
