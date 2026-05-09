@@ -1,0 +1,17 @@
+{
+  "name": "meshpay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A full-stack simulation of secure, offline payment routing and idempotency.",
+  "scripts": {
+    "dev": "npm run dev --workspace backend",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "start": "npm run start --workspace backend",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}
