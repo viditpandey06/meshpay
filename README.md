@@ -16,27 +16,11 @@ This is not a real Bluetooth/NFC payment product. The offline transport layer is
 
 - Hybrid encrypted packet payloads: payment instructions are encrypted with RSA-OAEP-SHA256 plus AES-256-GCM in `backend/src/crypto/hybridCrypto.js`.
 - Duplicate-safe bridge ingestion: repeated uploads of the same encrypted packet are detected with a SHA-256 packet hash and an idempotency gate.
-- Queue-backed processing pipeline: bridge uploads are accepted first, then processed through BullMQ when Redis is configured, or through an in-memory worker fallback for lightweight demos.
+- Queue-backed processing pipeline: bridge uploads are accepted first, then processed asynchronously through a worker layer.
 - Dead-letter queue path: malformed, stale, future-dated, or poison packets are isolated into DLQ records instead of disappearing silently.
 - Live observability: Socket.IO streams mesh events to the React dashboard while REST endpoints provide full state snapshots.
 - Infrastructure-optional design: MongoDB and Redis are supported, but the app can run in memory mode for a simple portfolio deployment.
 - Deployment-ready split: Vercel serves the frontend, Render hosts the backend, and custom domains can be attached independently.
-
-## Why The Queue Exists
-
-The queue sits between bridge upload and final settlement.
-
-When bridge nodes flush packets, multiple bridge devices may upload the same packet at nearly the same time. The backend first performs idempotency in `IngestionService.ingest()`. The first copy is marked `QUEUED`, and duplicates are dropped as `DUPLICATE_DROPPED`.
-
-The queued worker then handles the heavier processing:
-
-1. Decrypt the encrypted packet.
-2. Validate packet freshness.
-3. Settle or reject the transaction.
-4. Retry worker failures.
-5. Move bad packets to the DLQ when needed.
-
-In production-style mode, BullMQ uses Redis for durable queueing and worker concurrency. In demo mode, the same queue interface falls back to an in-memory job list, which keeps the app easy to deploy without extra cloud services.
 
 ## Project Structure
 
@@ -126,70 +110,6 @@ The backend defaults to:
 http://localhost:4000
 ```
 
-## Environment Variables
-
-Create `backend/.env` from `backend/.env.example`.
-
-Minimal backend configuration:
-
-```env
-PORT=4000
-FRONTEND_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-IDEMPOTENCY_TTL_SECONDS=86400
-PACKET_MAX_AGE_SECONDS=86400
-```
-
-Optional MongoDB:
-
-```env
-MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>/<db>?retryWrites=true&w=majority
-```
-
-Optional Redis:
-
-```env
-REDIS_URL=redis://...
-```
-
-Use `rediss://...` if the Redis provider requires TLS.
-
-Frontend configuration:
-
-```env
-VITE_API_URL=https://your-render-service.onrender.com
-```
-
-## Deployment Notes
-
-Recommended portfolio deployment:
-
-- Frontend on Vercel
-- Backend on Render
-- Memory mode is acceptable for a live portfolio demo
-- MongoDB Atlas is optional if persistent logs are desired
-- Redis Cloud is optional if you want the full BullMQ/idempotency architecture story in production
-
-Render backend settings:
-
-```env
-PORT=4000
-FRONTEND_ORIGINS=https://meshpay-frontend.vercel.app,https://yourdomain.com
-IDEMPOTENCY_TTL_SECONDS=86400
-PACKET_MAX_AGE_SECONDS=86400
-```
-
-Vercel frontend setting:
-
-```env
-VITE_API_URL=https://your-render-service.onrender.com
-```
-
-If a custom API domain is added later, update Vercel:
-
-```env
-VITE_API_URL=https://api.yourdomain.com
-```
-
 ## API Surface
 
 - `GET /api/health`: runtime mode and crypto summary
@@ -202,16 +122,6 @@ VITE_API_URL=https://api.yourdomain.com
 - `POST /api/mesh/reset`: restore seed accounts and clear demo state
 - `POST /api/dev/tamper-first-packet`: force decryption failure for DLQ demonstration
 - `POST /api/bridge/ingest`: production-shaped bridge upload endpoint
-
-## Interview Talking Points
-
-- MeshPay is production-shaped, not production-claimed.
-- The transport mesh is simulated, but the ingestion pipeline models real backend concerns.
-- The frontend uses React hooks, not Redux, because the app is a compact single-screen dashboard and the backend owns the main state.
-- The queue separates quick bridge upload acceptance from decryption and settlement work.
-- Idempotency protects the backend from duplicate bridge uploads.
-- DLQ handling makes failure paths inspectable instead of silent.
-- MongoDB and Redis are optional because the project is designed to be easy to run and deploy as a portfolio demo.
 
 ## Author
 
