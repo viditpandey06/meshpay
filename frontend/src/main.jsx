@@ -198,9 +198,9 @@ function App() {
           <h1>MeshPay</h1>
         </div>
         <div className="health-strip">
-          <StatusPill icon={<Database size={15} />} label={health?.store || 'store'} />
-          <StatusPill icon={<GitBranch size={15} />} label={health?.queue || 'queue'} />
-          <StatusPill icon={<ShieldCheck size={15} />} label={health?.redis ? 'Redis idempotency' : 'memory idempotency'} />
+          <StatusPill icon={<Database size={15} />} label="Ephemeral ledger" title={`Storage: ${health?.store || 'loading'}`} />
+          <StatusPill icon={<GitBranch size={15} />} label="Async packet flow" title={`Queue: ${health?.queue || 'loading'}`} />
+          <StatusPill icon={<ShieldCheck size={15} />} label="Duplicate-safe" title={health?.redis ? 'Redis idempotency' : 'In-memory idempotency'} />
           <a className="contact-dev" href="https://viditpandey.in" target="_blank" rel="noreferrer" title="Contact developer">
             <Mail size={15} /> Contact dev
           </a>
@@ -320,8 +320,8 @@ function App() {
   );
 }
 
-function StatusPill({ icon, label }) {
-  return <span className="status-pill">{icon}{label}</span>;
+function StatusPill({ icon, label, title }) {
+  return <span className="status-pill" title={title}>{icon}{label}</span>;
 }
 
 function SectionTitle({ icon, title }) {
