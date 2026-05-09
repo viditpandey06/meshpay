@@ -414,6 +414,23 @@ select {
   margin-top: 14px;
 }
 
+.creator-credit {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 18px;
+  text-align: center;
+}
+
+.creator-credit a {
+  color: var(--green);
+  text-decoration: none;
+}
+
+.creator-credit a:hover {
+  text-decoration: underline;
+}
+
 .table-surface {
   overflow-x: auto;
 }

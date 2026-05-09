@@ -308,6 +308,10 @@ function App() {
         <DataTable title="Transactions" columns={['Status', 'From', 'To', 'Amount', 'Bridge']} rows={(state?.transactions || []).map((tx) => [tx.status, tx.senderVpa, tx.receiverVpa, `Rs ${tx.amount.toFixed(2)}`, tx.bridgeNodeId])} statusColumn />
         <DataTable title="Dead Letter Queue" columns={['Packet', 'Reason', 'Bridge']} rows={(state?.dlq || []).map((row) => [short(row.packetId), row.reason, row.bridgeNodeId])} />
       </section>
+
+      <footer className="creator-credit">
+        Created by <a href="https://viditpandey.in" target="_blank" rel="noreferrer">viditpandey.in</a>
+      </footer>
     </main>
   );
 }
