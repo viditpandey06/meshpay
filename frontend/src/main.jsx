@@ -17,6 +17,9 @@ import {
 import './styles.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const BACKEND_WAKE_NOTICE = 'Waking up the MeshPay backend server...\nRender free-tier web services can idle after inactivity, so the initial API request may take a few seconds.';
+const BACKEND_UNAVAILABLE_NOTICE = 'MeshPay API is still unavailable.\nThe backend may still be starting on Render, or the API URL/CORS configuration may need review.';
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function api(path, options = {}) {
   const response = await fetch(`${API_URL}${path}`, {
@@ -31,7 +34,7 @@ function App() {
   const [state, setState] = useState(null);
   const [health, setHealth] = useState(null);
   const [events, setEvents] = useState([]);
-  const [notice, setNotice] = useState({ type: 'info', text: 'Connected to the MeshPay demo runtime.' });
+  const [notice, setNotice] = useState({ type: 'info', text: BACKEND_WAKE_NOTICE });
   const [busyAction, setBusyAction] = useState('');
   const [form, setForm] = useState({
     senderVpa: 'alice@demo',
@@ -51,15 +54,47 @@ function App() {
   };
 
   useEffect(() => {
-    refresh().catch((error) => {
-      setNotice({ type: 'error', text: `Backend is not reachable: ${error.message}` });
-    });
+    let cancelled = false;
+
+    const connectBackend = async () => {
+      setNotice({ type: 'info', text: BACKEND_WAKE_NOTICE });
+
+      for (let attempt = 1; attempt <= 4; attempt += 1) {
+        try {
+          await refresh();
+          if (!cancelled) {
+            setNotice({ type: 'success', text: 'Connected to the MeshPay demo runtime.' });
+          }
+          return;
+        } catch (error) {
+          if (cancelled) return;
+
+          if (attempt === 4) {
+            setNotice({ type: 'error', text: `${BACKEND_UNAVAILABLE_NOTICE}\nLast response: ${error.message}` });
+            return;
+          }
+
+          setNotice({
+            type: 'info',
+            text: `${BACKEND_WAKE_NOTICE}\nRetrying backend health check (${attempt + 1}/4)...`
+          });
+          await sleep(3000);
+        }
+      }
+    };
+
+    connectBackend();
     const socket = io(API_URL);
     socket.on('mesh:event', (event) => {
       setEvents((current) => [event, ...current].slice(0, 40));
-      refresh();
+      refresh().catch((error) => {
+        setNotice({ type: 'error', text: `${BACKEND_UNAVAILABLE_NOTICE}\nLast response: ${error.message}` });
+      });
     });
-    return () => socket.close();
+    return () => {
+      cancelled = true;
+      socket.close();
+    };
   }, []);
 
   const selectedPacket = state?.packets?.[0];

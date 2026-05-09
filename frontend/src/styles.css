@@ -190,6 +190,7 @@ select {
   font-weight: 700;
   margin: 0 0 14px;
   padding: 11px 13px;
+  white-space: pre-line;
 }
 
 .notice.info {
